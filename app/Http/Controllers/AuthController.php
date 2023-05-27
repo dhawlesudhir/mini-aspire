@@ -9,7 +9,11 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    // admin login
+    // 47|Hc0yYm40HYm37S5JkwkCmoYdI5j5zRjnOq3X3n2n
 
+    // usr login
+    //48|LR3w4s8H7PueTAFtv66uo1Msqu0yJEa2w274eWxf
     public function login(Request $request)
     {
         $fields = $request->validate([
@@ -32,5 +36,43 @@ class AuthController extends Controller
     {
         auth()->user()->tokens()->delete();
         return response(['message' => 'logged out'], 200);
+    }
+
+    public static function registerCustomer(Request $request)
+    {
+        $form = $request->validate([
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|confirmed',
+            'password_confirmation' => 'required|string'
+        ]);
+
+        $form['password'] = Hash::make($form['password']);
+
+        $user = User::create($form);
+
+        return $user->id;
+    }
+
+
+    public function register(Request $request)
+    {
+        $form = $request->validate([
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|confirmed',
+            'password_confirmation' => 'required|string'
+        ]);
+
+        $form['password'] = Hash::make($form['password']);
+
+        $user = User::create($form);
+
+        $token = $user->createToken('miniaspiretoken')->plainTextToken;
+
+        $response = ['user' => $user, 'token' => $token];
+        return response($response, 201);
     }
 }
