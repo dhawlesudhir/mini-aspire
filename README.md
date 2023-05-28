@@ -44,6 +44,10 @@ php artisan schedule:work
 php artisan test
 ```
 
+## Documentation
+
+[API](https://documenter.getpostman.com/view/998100/2s93m8xKp3)
+
 ## Author
 
 [Sudhir Dhawle](https://www.linkedin.com/in/sudhirdhawle/)

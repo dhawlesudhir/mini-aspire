@@ -41,4 +41,4 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/loan/submit', [LoanAccountController::class, 'submitLoan']);
 
-Route::patch('/shedulerepayments', [RepaymentSchedulerController::class, 'loansScheduler']);
+// Route::patch('/shedulerepayments', [RepaymentSchedulerController::class, 'loansScheduler']);
