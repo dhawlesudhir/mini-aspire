@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\LoanAccount;
+use App\Models\RepaymentScheduler;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +17,7 @@ class LoanAccountController extends Controller
     public function index()
     {
         $user = Auth::user();
-        if ($user->type == 1) {
+        if ($user->type == "ADMIN") {
             $loanAccounts = LoanAccount::all();
         } else {
             $loanAccounts = LoanAccount::where('user_id', '=', $user->id)->get();
@@ -25,7 +26,7 @@ class LoanAccountController extends Controller
         return response(['data' => $loanAccounts], 200);
     }
 
-    public function store(Request $request)
+    public function submitLoan(Request $request)
     {
 
         $form = $request->validate([
@@ -35,59 +36,63 @@ class LoanAccountController extends Controller
         ]);
 
         if ($request->user('sanctum') != null) {
-            $user_id = $request->user('sanctum')->id;
-            $form['user_id'] = $user_id;
+            $userId = $request->user('sanctum')->id;
+            $form['user_id'] = $userId;
         } else {
-            $user_id = AuthController::registerCustomer($request);
-            if (isset($user_id)) {
-                $form['user_id'] = $user_id;
+            $userId = AuthController::registerCustomer($request);
+            if (isset($userId)) {
+                $form['user_id'] = $userId;
             } else {
                 return response(['error' => 'try again!'], 409);
             }
         }
-        return $this->submitloan($form);
+        return $this->saveLoan($form);
     }
 
-    public function submitloan(array $form)
+    public function saveLoan(array $form)
     {
 
         if (!isset($form['purpose'])) {
             $form['purpose'] = null;
         }
+        $form['status'] = 1;
 
-        $loanaccount = LoanAccount::create([
-            'user_id' => $form['user_id'],
-            'amount' => $form['amount'],
-            'bal_amount' => $form['amount'],
-            'terms' => $form['terms'],
-            'purpose' => $form['purpose'] ? $form['purpose'] : '',
-            'status' => 1,
-        ]);
+        $loanAccount = LoanAccount::create($form);
+        // $loanaccount = LoanAccount::create([
+        //     'user_id' => $form['user_id'],
+        //     'amount' => $form['amount'],
+        //     'bal_amount' => $form['amount'],
+        //     'terms' => $form['terms'],
+        //     'purpose' => $form['purpose'] ? $form['purpose'] : '',
+        //     'status' => 1,
+        // ]);
 
-        $user = User::find($loanaccount->user_id);
-        $loanaccount['name'] = $user->first_name . " " . $user->last_name;
+        $user = User::find($loanAccount->user_id);
+        $loanAccount['name'] = $user->first_name . " " . $user->last_name;
 
-        unset($loanaccount['bal_amount']);
+        unset($loanAccount['bal_amount']);
 
-        $response = ['msg' => 'success', 'account' => $loanaccount];
+        $response = ['msg' => 'success', 'account' => $loanAccount];
 
         return response($response, 201);
     }
 
-    public function show($loanid)
+    public function show($loanId)
     {
 
-        $loanAccount = LoanAccount::find($loanid);
+        $loanAccount = LoanAccount::find($loanId);
         if (!isset($loanAccount)) {
             return response(['error' => 'not found'], 204);
         }
 
+        $loanAccount->pendingRepayments;
+
         return response(['details' => $loanAccount], 302);
     }
 
-    public function update($loanid)
+    public function approveLoan($loanId)
     {
-        $loanAccount = LoanAccount::find($loanid);
+        $loanAccount = LoanAccount::find($loanId);
         if (!isset($loanAccount)) {
             $responseCode = 404;
             $response = ['error' => 'loan account not found'];
@@ -110,6 +115,44 @@ class LoanAccountController extends Controller
                 $response = ['error' => 'loan does not require approval'];
             }
         }
+
         return response($response, $responseCode);
+    }
+
+    public function getLoanRepaymentSchedule($loanId)
+    {
+        return LoanAccount::find($loanId)->repayments;
+    }
+
+    public function loanPayment(Request $request)
+    {
+        $form = $request->validate([
+            'id' => 'required|numeric|exists:loan_accounts',
+            'amount' => 'required|numeric',
+        ]);
+
+        $loanId = $form['id'];
+        $paidAmount = round($form['amount'], 2);
+
+        return RepaymentSchedulerController::processRepayment($loanId, $paidAmount);
+    }
+
+    /**
+     * update loan balance amount and condition based status
+     * 1) paidAmount < balance amount : update balance amount
+     * 1) paidAmount > balance amount : update balance & change status to PAID
+     */
+    public static function loanPaymentUpdate($loanId, $paidAmount)
+    {
+        $loanAccount = LoanAccount::find($loanId);
+        $balance =  $loanAccount->bal_amount;
+        if ($paidAmount < $balance) {
+            $loanAccount->bal_amount = $balance - $paidAmount;
+        } else {
+            $loanAccount->bal_amount = $balance - $paidAmount;
+            $loanAccount->status = 3;
+        }
+
+        $loanAccount->save();
     }
 }
