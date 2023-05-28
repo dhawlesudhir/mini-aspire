@@ -16,6 +16,28 @@ Use the package manager [composer]() to install application.
 composer install
 ```
 
+## Environment setup
+
+1. Make copy .env.example as .env
+
+```bash
+.env
+.env.example
+```
+
+2. Set values for environment variables
+
+EXAMPLE
+
+```bash
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=mini_aspire_db
+DB_USERNAME=dummyuser
+DB_PASSWORD=secret
+```
+
 ## Preusage commands
 
 ```bash
@@ -49,6 +71,26 @@ php artisan schedule:work
 ```bash
 php artisan test
 ```
+
+## Credentials
+
+Admin
+
+`email` admin@application.com
+
+`password` admin@appp
+
+PHPMyAdmin
+
+`Username` dummyuser
+
+`Password` secret
+
+## Docker repositor
+
+Seperate GIT repositor has been created.
+
+[dhawlesudhir/mini_aspire_docker_compose_config](https://github.com/dhawlesudhir/mini_aspire_docker_compose_config)
 
 ## Documentation
 
