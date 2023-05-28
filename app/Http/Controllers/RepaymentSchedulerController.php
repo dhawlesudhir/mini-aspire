@@ -24,30 +24,30 @@ class RepaymentSchedulerController extends Controller
 
     public function scheduleRepayments(LoanAccount $loanAccount)
     {
-        $schedule = [];
+        $scheduleDetails = [];
         $amount = $loanAccount->bal_amount;
         $terms = $loanAccount->terms;
 
-        $schedule['user_id'] = $loanAccount->user_id;
-        $schedule['loan_account_id'] = $loanAccount->id;
-        $schedule['nurration'] = 'auto scheduled';
+        $scheduleDetails['user_id'] = $loanAccount->user_id;
+        $scheduleDetails['loan_account_id'] = $loanAccount->id;
+        $scheduleDetails['nurration'] = 'auto scheduled';
 
         // $today = Carbon::today();
         $amountSum = 0;
         for ($term = 1; $term < $terms; $term++) {
             $termAmount = round($amount / $terms, 2);
-            $schedule['term'] = $term;
-            $schedule['amount'] = $termAmount;
-            $schedule['due_date'] = Carbon::today()->addWeeks($term);
+            $scheduleDetails['term'] = $term;
+            $scheduleDetails['amount'] = $termAmount;
+            $scheduleDetails['due_date'] = Carbon::today()->addWeeks($term);
             $amountSum += $termAmount;
-            $this->store($schedule);
+            $this->store($scheduleDetails);
         }
 
-        $schedule['term'] = $term;
-        $schedule['amount'] = $amount - $amountSum;
-        $schedule['due_date'] = Carbon::today()->addWeeks($term);
-        $scheduled = $this->store($schedule);
-        if ($scheduled) {
+        $scheduleDetails['term'] = $term;
+        $scheduleDetails['amount'] = $amount - $amountSum;
+        $scheduleDetails['due_date'] = Carbon::today()->addWeeks($term);
+        $scheduledFlag = $this->store($scheduleDetails);
+        if ($scheduledFlag) {
             $loanAccount->scheduled = 1;
             $loanAccount->save();
         }
