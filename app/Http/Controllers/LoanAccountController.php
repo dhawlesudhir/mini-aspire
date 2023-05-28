@@ -57,14 +57,6 @@ class LoanAccountController extends Controller
         $form['status'] = 1;
 
         $loanAccount = LoanAccount::create($form);
-        // $loanaccount = LoanAccount::create([
-        //     'user_id' => $form['user_id'],
-        //     'amount' => $form['amount'],
-        //     'bal_amount' => $form['amount'],
-        //     'terms' => $form['terms'],
-        //     'purpose' => $form['purpose'] ? $form['purpose'] : '',
-        //     'status' => 1,
-        // ]);
 
         $user = User::find($loanAccount->user_id);
         $loanAccount['name'] = $user->first_name . " " . $user->last_name;

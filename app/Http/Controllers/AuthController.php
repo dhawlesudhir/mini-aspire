@@ -9,11 +9,7 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // admin login
-    // 47|Hc0yYm40HYm37S5JkwkCmoYdI5j5zRjnOq3X3n2n
 
-    // usr login
-    //48|LR3w4s8H7PueTAFtv66uo1Msqu0yJEa2w274eWxf
     public function login(Request $request)
     {
         $fields = $request->validate([
