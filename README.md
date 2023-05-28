@@ -24,6 +24,12 @@ php artisan cache:clear
 php artisan migrate
 ```
 
+## Create Admin(User)
+
+```bash
+php artisan db:seed
+```
+
 ## Start Local server
 
 ```bash
