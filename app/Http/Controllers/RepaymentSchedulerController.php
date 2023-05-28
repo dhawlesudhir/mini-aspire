@@ -64,7 +64,7 @@ class RepaymentSchedulerController extends Controller
      * repayment processing for 3 conditions
      * 1) paidAmount < term due amount  : not allowed 
      * 2) paidAmount = upcoming term due amount : term status to PAID
-     * 3) paidAmount > term due amount : reschedule upcoming payments or loan mark as paid(if no positive balance amt)
+     * 3) paidAmount > term due amount : update loan balance AND reschedule upcoming payments
      */
     public static function processRepayment($loanId, $paidAmount)
     {
@@ -115,9 +115,9 @@ class RepaymentSchedulerController extends Controller
 
 
     /**
-     * reschedulling pending repayments incase of required 
-     * eg:- extra amount received for term, get adjusted in next repayments
-     *      If LoamAccount PAID then mark pending repayments PAID
+     * reSchedulling/updating pending repayments If 
+     * 1) If LoamAccount status PAID : update all pending repayments status to  PAID
+     * 2) extra amount received for term : get adjusted in next repayments
      */
     public static function resheduleRepayments($loanId)
     {
