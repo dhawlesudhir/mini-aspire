@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LoanAccount extends Model
 {
@@ -43,4 +44,25 @@ class LoanAccount extends Model
             get: fn ($value) => LoanAccount::STATUS[$value],
         );
     }
+
+    public function repayments(): HasMany
+    {
+        return $this->hasMany(RepaymentScheduler::class);
+    }
+
+    public function pendingRepayments(): HasMany
+    {
+        return $this->hasMany(RepaymentScheduler::class)->where('status', '=', 1);
+    }
+
+    public function paidRepayments(): HasMany
+    {
+        return $this->hasMany(RepaymentScheduler::class)->where('status', '=', 2);
+    }
+
+    // public function approvedLoanAccount()
+    // {
+    //     return $this->where('status', '=', 2)
+    //         ->get();
+    // }
 }
