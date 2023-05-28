@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\LoanAccount;
 use App\Models\RepaymentScheduler;
 use Carbon\Carbon;
-use GuzzleHttp\Psr7\Request;
+use Illuminate\Support\Facades\Log;
+
 
 class RepaymentSchedulerController extends Controller
 {
@@ -14,7 +15,8 @@ class RepaymentSchedulerController extends Controller
         $loanAccounts = LoanAccount::where('status', '=', 2)->where('scheduled', '=', 0)->get();
 
         if (empty(count($loanAccounts))) {
-            return 'no Pending applications';
+
+            Log::info('RepaymentSchedulerController::loansScheduler => no pending application');
         } else {
             foreach ($loanAccounts as  $loanAccount) {
                 RepaymentSchedulerController::scheduleRepayments($loanAccount);
