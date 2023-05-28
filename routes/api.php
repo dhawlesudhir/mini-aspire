@@ -2,9 +2,8 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LoanAccountController;
-use App\Models\LoanAccount;
+use App\Http\Controllers\RepaymentSchedulerController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,17 +17,28 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
+
+
+/**
+ * below routes access only for login users
+ */
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/logout', [AuthController::class, 'logout']);
+    Route::get('/loan/{loanid}', [LoanAccountController::class, 'show']);
+    Route::get('/loans', [LoanAccountController::class, 'index']);
+    Route::patch('/loan/approve/{loanid}', [LoanAccountController::class, 'approveLoan']);
+    Route::get('/loan/schedule/{loanid}', [LoanAccountController::class, 'getLoanRepaymentSchedule']);
+    Route::post('/loan/payment', [LoanAccountController::class, 'loanPayment']);
 });
 
-
+/**
+ * below routes doen't need login
+ */
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login'])->name('login');
-Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::post('/loan/submit', [LoanAccountController::class, 'submitLoan']);
 
-Route::post('/loan', [LoanAccountController::class, 'store']);
-// Route::get('/loan', [LoanAccountController::class, 'show'])->middleware('auth:santum');
-Route::get('/loan/{loanid}', [LoanAccountController::class, 'show']);
-Route::get('/loans', [LoanAccountController::class, 'index'])->middleware('auth:sanctum');
-Route::patch('/approve/loan/{loanid}', [LoanAccountController::class, 'update'])->middleware('auth:sanctum');
+Route::patch('/shedulerepayments', [RepaymentSchedulerController::class, 'loansScheduler']);
