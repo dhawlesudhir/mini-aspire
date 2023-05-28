@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\LoanAccount;
-use App\Models\RepaymentScheduler;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Nette\Utils\Arrays;
+use Illuminate\Support\Facades\Gate;
 
 
 class LoanAccountController extends Controller
@@ -81,6 +80,8 @@ class LoanAccountController extends Controller
     {
 
         $loanAccount = LoanAccount::find($loanId);
+        Gate::authorize('view', $loanAccount);
+
         if (!isset($loanAccount)) {
             return response(['error' => 'not found'], 204);
         }
@@ -92,7 +93,10 @@ class LoanAccountController extends Controller
 
     public function approveLoan($loanId)
     {
+        Gate::allowIf(fn (User $user) => $user->type == "ADMIN");
+
         $loanAccount = LoanAccount::find($loanId);
+
         if (!isset($loanAccount)) {
             $responseCode = 404;
             $response = ['error' => 'loan account not found'];
@@ -121,11 +125,15 @@ class LoanAccountController extends Controller
 
     public function getLoanRepaymentSchedule($loanId)
     {
-        return LoanAccount::find($loanId)->repayments;
+        $loanAccount = LoanAccount::find($loanId);
+        Gate::authorize('view', $loanAccount);
+        return $loanAccount->repayments;
     }
 
     public function loanPayment(Request $request)
     {
+
+
         $form = $request->validate([
             'id' => 'required|numeric|exists:loan_accounts',
             'amount' => 'required|numeric',
@@ -133,6 +141,8 @@ class LoanAccountController extends Controller
 
         $loanId = $form['id'];
         $paidAmount = round($form['amount'], 2);
+
+        Gate::authorize('view', LoanAccount::find($loanId));
 
         return RepaymentSchedulerController::processRepayment($loanId, $paidAmount);
     }
