@@ -9,7 +9,7 @@ use GuzzleHttp\Psr7\Request;
 
 class RepaymentSchedulerController extends Controller
 {
-    public function loansScheduler()
+    public static function loansScheduler()
     {
         $loanAccounts = LoanAccount::where('status', '=', 2)->where('scheduled', '=', 0)->get();
 
@@ -17,12 +17,12 @@ class RepaymentSchedulerController extends Controller
             return 'no Pending applications';
         } else {
             foreach ($loanAccounts as  $loanAccount) {
-                $this->scheduleRepayments($loanAccount);
+                RepaymentSchedulerController::scheduleRepayments($loanAccount);
             }
         }
     }
 
-    public function scheduleRepayments(LoanAccount $loanAccount)
+    public static function scheduleRepayments(LoanAccount $loanAccount)
     {
         $scheduleDetails = [];
         $amount = $loanAccount->bal_amount;
@@ -40,13 +40,13 @@ class RepaymentSchedulerController extends Controller
             $scheduleDetails['amount'] = $termAmount;
             $scheduleDetails['due_date'] = Carbon::today()->addWeeks($term);
             $amountSum += $termAmount;
-            $this->store($scheduleDetails);
+            RepaymentSchedulerController::store($scheduleDetails);
         }
 
         $scheduleDetails['term'] = $term;
         $scheduleDetails['amount'] = $amount - $amountSum;
         $scheduleDetails['due_date'] = Carbon::today()->addWeeks($term);
-        $scheduledFlag = $this->store($scheduleDetails);
+        $scheduledFlag = RepaymentSchedulerController::store($scheduleDetails);
         if ($scheduledFlag) {
             $loanAccount->scheduled = 1;
             $loanAccount->save();
@@ -54,7 +54,7 @@ class RepaymentSchedulerController extends Controller
         // $loanAccount = LoanAccount::find($loanAccount->id);
     }
 
-    public function store(array $scheduleDetails)
+    public static function store(array $scheduleDetails)
     {
         return RepaymentScheduler::create($scheduleDetails);
     }
